@@ -206,12 +206,12 @@ app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
       if (chunk.chunk?.bytes) chunks.push(chunk.chunk.bytes);
     }
     const rawResponse = Buffer.concat(chunks).toString("utf-8");
-    // textToSpeech(rawResponse, languageCode, "output.mp3");
-    // res.json({
-    //   question: question,
-    //   agentResponse: rawResponse,
-    // });
-    
+    textToSpeech(rawResponse, languageCode, "output.mp3");
+    res.json({
+      question: question,
+      agentResponse: rawResponse,
+    });
+
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Something went wrong." });
