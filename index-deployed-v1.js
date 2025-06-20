@@ -226,6 +226,9 @@
       const rawResponse = Buffer.concat(chunks).toString("utf-8");
       console.log("[DEBUG] after rawResponse", new Date().toLocaleString());
       console.log("reached here rawResponse", rawResponse);
+      rawResponse.replaceAll("\n", "");
+      rawResponse.replaceAll("\\\\", "");
+
       // Step 4: Convert response to speech
       // textToSpeech(rawResponse, languageCode, "output.mp3");
   
