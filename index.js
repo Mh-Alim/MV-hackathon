@@ -1,3 +1,4 @@
+
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
@@ -33,7 +34,7 @@ import {
 
 
 dotenv.config();
-
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -44,7 +45,7 @@ const credentials = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 };
-const region = "ap-south-1";
+const region = process.env.AWS_REGION;
 const bucket = process.env.S3_BUCKET_NAME;
 
 
@@ -56,7 +57,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 
 const client = new BedrockAgentRuntimeClient({
-  region: "ap-south-1", // Use your correct region
+  region: process.env.AWS_REGION, // Use your correct region
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -81,12 +82,14 @@ const polly = new PollyClient({
  * @param {string} languageCode - e.g., "hi-IN", "en-US", "ta-IN"
  * @param {string} filePath - Output file name (e.g., "output.mp3")
  */
-async function textToSpeech(text, languageCode = "hi-IN", filePath = "output.mp3") {
+
+// covert text to audio and stream it to client.
+export async function textToSpeechStream(text, languageCode = "en-IN", res) {
   const langVoiceMap = {
-    "hi": "Aditi",  // Hindi
-    "ta": "Kajal",  // Tamil
-    "te": "Teja",   // Telugu
-    "en": "Joanna", // English
+    hi: "Aditi",  // Hindi
+    ta: "Kajal",  // Tamil
+    te: "Teja",   // Telugu
+    en: "Joanna", // English
   };
 
   const lang = languageCode.split("-")[0];
@@ -101,18 +104,50 @@ async function textToSpeech(text, languageCode = "hi-IN", filePath = "output.mp3
 
   try {
     const response = await polly.send(command);
-    const audioStream = response.AudioStream;
-
-    const writeStream = fs.createWriteStream(filePath);
-    audioStream.pipe(writeStream);
-
-    writeStream.on("finish", () => {
-      console.log(`✅ Audio saved to: ${filePath}`);
+    const audioStream = response.AudioStream; // Return the audio stream
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Disposition": "inline; filename=response.mp3",
     });
+
+    audioStream.pipe(res); 
   } catch (error) {
     console.error("❌ Error generating speech:", error);
+    throw error;
   }
 }
+// async function textToSpeech(text, languageCode = "hi-IN", filePath = "output.mp3") {
+//   const langVoiceMap = {
+//     "hi": "Aditi",  // Hindi
+//     "ta": "Kajal",  // Tamil
+//     "te": "Teja",   // Telugu
+//     "en": "Joanna", // English
+//   };
+
+//   const lang = languageCode.split("-")[0];
+//   const voiceId = langVoiceMap[lang] || "Joanna";
+
+//   const command = new SynthesizeSpeechCommand({
+//     Text: text,
+//     OutputFormat: "mp3",
+//     VoiceId: voiceId,
+//     LanguageCode: languageCode,
+//   });
+
+//   try {
+//     const response = await polly.send(command);
+//     const audioStream = response.AudioStream;
+
+//     const writeStream = fs.createWriteStream(filePath);
+//     audioStream.pipe(writeStream);
+
+//     writeStream.on("finish", () => {
+//       console.log(`✅ Audio saved to: ${filePath}`);
+//     });
+//   } catch (error) {
+//     console.error("❌ Error generating speech:", error);
+//   }
+// }
 
 // Example usage
 // textToSpeech("अलीम जी, आप किस बारे में जानकारी चाहते हैं? हम आपकी किस प्रकार की वित्तीय जरूरतों में मदद कर सकते हैं?", "hi-IN", "namaste.mp3");
@@ -166,6 +201,15 @@ async function transcribeAudio(s3Key) {
 
 // audio - audio agent
 app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
+  // const { userId, sessionId, product } = req.body;
+  console.log("headers", req.headers);
+  const userId = req.headers["userid"];
+  const product = req.headers["productid"];
+  const sessionId = req.headers["sessionid"];
+  console.log("reached here userId", userId);
+  console.log("reached here sessionId", sessionId);
+  console.log("reached here product", product);
+
   const audioFile = req.file;
   console.log("reached here audio file", audioFile);
   const audioStream = fs.createReadStream(audioFile.path);
@@ -188,16 +232,47 @@ app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
     console.log("reached here question", question);
     console.log("reached here language code", languageCode);
 
-    // Step 3: Ask Bedrock Agent
-    const agentId = "DNRT9JUPWM";
-    const agentAliasId = "UONBKK083N";
-    const sessionId = uuidv4();
+    // Step 3: Ask Agent with userId as sessionAttribute
+    const agentId = process.env.AGENT_ID;
+    const agentAliasId = process.env.AGENT_ALIAS_ID;
 
     const command = new InvokeAgentCommand({
       agentId,
       agentAliasId,
-      sessionId,
+      sessionId, // 👈 Use sessionId from frontend
       inputText: question,
+      sessionState: {
+        sessionAttributes: {
+          userId, // 👈 Store userId so Lambda can use it
+          product, // 👈 Store product so Lambda can use it
+        }
+      },
+      promptOverrideConfiguration: {
+        promptTemplate: {
+          promptType: "SYSTEM",
+          promptText: `
+    You are a helpful, friendly, and professional assistant representing **MoneyView**.
+    
+    ✅ Your job:
+    - Help users with the "${product}" product only.
+    - You can also answer any question about the MoneyView company (vision, trust, awards, etc).
+    
+    ❌ If the user asks about other products (like Digi Gold or HLAP when current product is Credit Card), reply politely:
+    "I'm here to help you with ${product}. Please visit the respective section for Digi Gold or HLAP."
+    
+    🛡 If someone criticizes MoneyView, respond positively:
+    "MoneyView is deeply trusted by millions of users and committed to excellent service."
+    
+    ⚖ If someone compares MoneyView with other companies, always favor MoneyView gently:
+    "While there are many platforms out there, MoneyView stands out with reliability, user-first design, and flexible products."
+    
+    ❗Never give generic AI replies. Only answer from knowledgebase. If not found:
+    "I'm sorry, I don’t have that information right now."
+    
+    Use a warm and conversational tone like a real human.
+          `.trim()
+        }
+      }
     });
 
     const response = await client.send(command);
@@ -206,12 +281,21 @@ app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
       if (chunk.chunk?.bytes) chunks.push(chunk.chunk.bytes);
     }
     const rawResponse = Buffer.concat(chunks).toString("utf-8");
-    textToSpeech(rawResponse, languageCode, "output.mp3");
-    res.json({
-      question: question,
-      agentResponse: rawResponse,
-    });
 
+    // Step 4: Convert response to speech
+    // textToSpeech(rawResponse, languageCode, "output.mp3");
+
+    // res.json({
+    //   question,
+    //   agentResponse: rawResponse,
+    // });
+
+    await textToSpeechStream(rawResponse, languageCode, res);
+
+    // return res.json({
+    //   question,
+    //   agentResponse: rawResponse,
+    // });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Something went wrong." });
@@ -219,6 +303,7 @@ app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
     fs.unlinkSync(audioFile.path);
   }
 });
+
 
 
 
