@@ -22,7 +22,7 @@
   
   dotenv.config();
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/alim.khan/Downloads/moneyview-hackthon-2352b21a61a0.json';
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/alim.khan/Desktop/Office/mv-hackathon/practice-1/moneyview-hackthon-2352b21a61a0.json';
   
   const app = express();
   app.use(express.json());
