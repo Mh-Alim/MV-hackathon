@@ -1,15 +1,8 @@
 
-import {
-    BedrockRuntimeClient,
-    InvokeModelCommand,
-  } from "@aws-sdk/client-bedrock-runtime";
   import { BedrockAgentRuntimeClient, InvokeAgentCommand } from "@aws-sdk/client-bedrock-agent-runtime";
   import express from "express";
   import dotenv from "dotenv";
   import cors from "cors";
-  import { v4 as uuidv4 } from "uuid";
-  import sdk from "microsoft-cognitiveservices-speech-sdk";
-  import path from "path";
   // consistent state - 1
   // transcribe code 
   
@@ -17,17 +10,7 @@ import {
   import fs from "fs";
   import {
     S3Client,
-    PutObjectCommand,
   } from "@aws-sdk/client-s3";
-  import {
-    TranscribeClient,
-    StartTranscriptionJobCommand,
-    GetTranscriptionJobCommand,
-  } from "@aws-sdk/client-transcribe";
-  import {
-    TranslateClient,
-    TranslateTextCommand,
-  } from "@aws-sdk/client-translate";
   
   import {
     PollyClient,
