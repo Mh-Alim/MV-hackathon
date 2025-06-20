@@ -9,6 +9,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 
+
+// consistent state - 1
 // transcribe code 
 
 import multer from "multer";
