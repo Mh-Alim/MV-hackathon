@@ -226,7 +226,7 @@
       let rawResponse = Buffer.concat(chunks).toString("utf-8");
       console.log("[DEBUG] after rawResponse", new Date().toLocaleString());
       console.log("reached here rawResponse before ", rawResponse);
-      rawResponse = rawResponse.replaceAll("\n", "");
+      rawResponse = rawResponse.replaceAll("\\n", "");
       rawResponse = rawResponse.replaceAll("\\\\", "");
       console.log("reached here rawResponse after", rawResponse);
 
