@@ -69,6 +69,7 @@
       te: "Teja",   // Telugu
       en: "Joanna", // English
     };
+    console.log("reached here textToSpeechStream", text, languageCode, res);
   
     const lang = languageCode.split("-")[0];
     const voiceId = langVoiceMap[lang] || "Joanna";
@@ -128,10 +129,12 @@
     
       
       const question = transcription;
-      const languageCode = googleResponse.results[0]?.languageCode || 'unknown';
+      const lang = googleResponse.results[0]?.languageCode || 'unknown';
+      const [part1, part2] = lang.split("-");
+      const languageCode = `${part1}-${part2.toUpperCase()}`;
   
       console.log("reached here question", question);
-      console.log("reached here language code", languageCode);
+      console.log("reached here language code", lang, languageCode); 
   
       // Step 3: Ask Agent with userId as sessionAttribute
       const agentId = process.env.AGENT_ID;
@@ -176,12 +179,13 @@
       });
   
       const response = await client.send(command);
+      console.log("reached here response", response);
       const chunks = [];
       for await (const chunk of response.completion) {
         if (chunk.chunk?.bytes) chunks.push(chunk.chunk.bytes);
       }
       const rawResponse = Buffer.concat(chunks).toString("utf-8");
-  
+      console.log("reached here rawResponse", rawResponse);
       // Step 4: Convert response to speech
       // textToSpeech(rawResponse, languageCode, "output.mp3");
   
@@ -191,7 +195,7 @@
       // });
   
       await textToSpeechStream(rawResponse, languageCode, res);
-  
+      console.log("Successfully sent the response to the client");
       // return res.json({
       //   question,
       //   agentResponse: rawResponse,
@@ -200,7 +204,8 @@
       console.error("Error:", error);
       res.status(500).json({ error: "Something went wrong." });
     } finally {
-      fs.unlinkSync(audioFile.path);
+      console.log("reached here finally");
+      // fs.unlinkSync(audioFile.path);
     }
   });
   
