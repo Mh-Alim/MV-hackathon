@@ -223,11 +223,13 @@
       }
       console.log("[DEBUG] after chunking", new Date().toLocaleString());
 
-      const rawResponse = Buffer.concat(chunks).toString("utf-8");
+      let rawResponse = Buffer.concat(chunks).toString("utf-8");
       console.log("[DEBUG] after rawResponse", new Date().toLocaleString());
-      console.log("reached here rawResponse", rawResponse);
-      rawResponse.replaceAll("\n", "");
-      rawResponse.replaceAll("\\\\", "");
+      console.log("reached here rawResponse before ", rawResponse);
+      rawResponse = rawResponse.replaceAll("\n", "");
+      rawResponse = rawResponse.replaceAll("\\\\", "");
+      console.log("reached here rawResponse after", rawResponse);
+
 
       // Step 4: Convert response to speech
       // textToSpeech(rawResponse, languageCode, "output.mp3");
