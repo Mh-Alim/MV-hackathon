@@ -216,7 +216,6 @@
   
       const response = await client.send(command);
       console.log("[DEBUG] after invoke agent", new Date().toLocaleString());
-      console.log("reached here response", response);
       const chunks = [];
       for await (const chunk of response.completion) {
         if (chunk.chunk?.bytes) chunks.push(chunk.chunk.bytes);
