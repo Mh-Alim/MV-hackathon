@@ -29,7 +29,7 @@ import { BedrockAgentRuntimeClient, InvokeAgentCommand } from "@aws-sdk/client-b
   const app = express();
   app.use(express.json());
   const corsOptions = {
-    origin: ['https://pwa-01-cross-sell-01.stg.whizdm.com', 'http://localhost:3000'],
+    origin: ['https://pwa-01-cross-sell-01.stg.whizdm.com', 'http://localhost:3000', 'http://localhost:3001'],
     methods: ['GET', 'POST'],
   };
   
