@@ -28,8 +28,12 @@ import { BedrockAgentRuntimeClient, InvokeAgentCommand } from "@aws-sdk/client-b
   
   const app = express();
   app.use(express.json());
-  app.use(cors());
+  const corsOptions = {
+    origin: ['https://pwa-01-cross-sell-01.stg.whizdm.com', 'http://localhost:3000'],
+    methods: ['GET', 'POST'],
+  };
   
+  app.use(cors(corsOptions));
   
   const googleSpeechClient = new SpeechClient();
   const upload = multer({ dest: 'uploads/' });
