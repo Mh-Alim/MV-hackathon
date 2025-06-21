@@ -22,12 +22,11 @@ import { SpeechClient } from '@google-cloud/speech';
 
 dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-// process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/m/v-hackathon/MV-hackathon/moneyview-hackthon-2352b21a61a0.json';
 process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/mv-hackathon/MV-hackathon/creds.json';
+// process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/kirti.anand/Documents/workspace/MV-hackathon/creds.json';
 
 
 const app = express();
-app.use(express.json());
 app.use(express.json());
 const corsOptions = {
   origin: ['https://pwa-01-cross-sell-01.stg.whizdm.com', 'http://localhost:3000', 'http://localhost:3001','http://localhost:3002', 'http://localhost:3003'],
@@ -116,15 +115,13 @@ const langCodeMap = {
 //   }
 // }
 
-async function textToSpeechStreamGoogle(text, languageCode, res, isNewConversation) {
+async function textToSpeechStreamGoogle(text, languageCode, res) {
   console.log("reached here textToSpeechStreamGoogle", text, languageCode, res);
   const request = {
     input: { text },
-    voice: {
-      languageCode: isNewConversation ? languageCode : "en-IN",
-      ssmlGender: 'FEMALE',
-      name: 'en-IN-Wavenet-A',
-    },
+    voice: { languageCode: languageCode,
+        ssmlGender: 'FEMALE',
+        name: 'en-IN-Wavenet-A', },
     audioConfig: { audioEncoding: 'MP3' },
   };
 
@@ -170,10 +167,9 @@ app.post("/ask-agent-audio", upload.single("audio"), async (req, res) => {
   try {
     console.log("[DEBUG] before audio bytes", new Date().toLocaleString());
 
-    let question = isNewConversation ? ` Speak in only one language. Dont repeat yourself. You are Mivi, a helpful assistant. Do not say you are an AI or virtual assistant.
+    let question = isNewConversation ? `You are Mivi, a helpful assistant. Do not say you are an AI or virtual assistant.
 
 When a user starts a new conversation:
-- Replay as female 
 - Greet them like a human.
 - Introduce yourself by name.
 - In 1-2 lines, explain how you can help the user specifically for the ${product} product.
@@ -212,8 +208,8 @@ Give answer in ${language} language. if language is available
 
       lang = googleResponse.results[0]?.languageCode || 'unknown';
       // const question = `Your response must be **clear, conversational, and always under 200 characters**. \n Product: ${product} ${transcription} for user id ${userId}`;
-      question = product === "digital-gold" ? `${transcription} for user id ${userId} . Replay as female . Do not give any answer more than 100 characters and 1-2 lines. Make is consise Even if you are thinking. Give only response for this digital gold product and SIP. we have SIP in digital gold. Monthly and Daily SIP. for credit cards or anything else please say we can discuss digital gold product and you can answer moneyview releated high level questions.`
-        : `${transcription} for user id ${userId} . Replay as female . Do not give any answer more than 100 characters and 1-2 lines. Make is consise Even if you are thinking. Give only response for credit cards product, for digital gold we can say we can discuss only credit card related things. you can answer questions about moneyview. If user ask for card suggestion, only give 1 or 2 cards 
+      question = product === "digital-gold" ? `${transcription} for user id ${userId} . Do not give any answer more than 100 characters and 1-2 lines. Make is consise Even if you are thinking. Give only response for this digital gold product and SIP. we have SIP in digital gold. Monthly and Daily SIP. for credit cards or anything else please say we can discuss digital gold product and you can answer moneyview releated high level questions.` 
+      : `${transcription} for user id ${userId} . Do not give any answer more than 100 characters and 1-2 lines. Make is consise Even if you are thinking. Give only response for credit cards product, for digital gold we can say we can discuss only credit card related things. you can answer questions about moneyview. If user ask for card suggestion, only give 1 or 2 cards 
       nothing more than that. Suggest the card which offers maximum savings. check the Knowledge base for the card details. file name is available-banks.md, ` ;
       const [part1, part2] = lang.split("-");
       languageCode = part1 && part2 ? `${part1}-${part2.toUpperCase()}` : "en-IN";
@@ -288,7 +284,7 @@ Give answer in ${language} language. if language is available
     //   agentResponse: rawResponse,
     // });
 
-    await textToSpeechStreamGoogle(rawResponse, languageCode, res, isNewConversation);
+    await textToSpeechStreamGoogle(rawResponse, languageCode, res);
     console.log("Successfully sent the response to the client");
     // return res.json({
     //   question,
