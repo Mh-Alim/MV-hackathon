@@ -103,6 +103,13 @@
   //   }
   // }
 
+
+  app.get("/health-check", (req, res) => {
+    return res.status(200).json({
+      message: "Server is running",
+    });
+  });
+
   async function textToSpeechStreamGoogle(text, languageCode, res) {
     console.log("reached here textToSpeechStreamGoogle", text, languageCode, res);
     const request = {
