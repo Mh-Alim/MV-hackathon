@@ -23,7 +23,8 @@ import { BedrockAgentRuntimeClient, InvokeAgentCommand } from "@aws-sdk/client-b
   dotenv.config();
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
   // process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/m/v-hackathon/MV-hackathon/moneyview-hackthon-2352b21a61a0.json';
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/kirti.anand/Documents/workspace/MV-hackathon/creds.json';
+  // process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/kirti.anand/Documents/workspace/MV-hackathon/creds.json';
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/mv-hackathon/MV-hackathon/creds.json';
 
   
   const app = express();
