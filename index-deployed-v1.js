@@ -23,8 +23,8 @@
   
   dotenv.config();
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-  // process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/mv-hackathon/MV-hackathon/moneyview-hackthon-2352b21a61a0.json';
   process.env.GOOGLE_APPLICATION_CREDENTIALS = '/home/mv-hackathon/MV-hackathon/moneyview-hackthon-2352b21a61a0.json';
+  // process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/alim.khan/Desktop/Office/mv-hackathon/practice-1/moneyview-hackthon-2352b21a61a0.json';
 
   
   const app = express();
@@ -107,7 +107,7 @@
     console.log("reached here textToSpeechStreamGoogle", text, languageCode, res);
     const request = {
       input: { text },
-      voice: { languageCode, ssmlGender: 'FEMALE', name: 'hi-IN-Wavenet-A', },
+      voice: { languageCode: 'en-IN', ssmlGender: 'FEMALE', name: 'hi-IN-Wavenet-A', },
       audioConfig: { audioEncoding: 'MP3' },
     };
   
